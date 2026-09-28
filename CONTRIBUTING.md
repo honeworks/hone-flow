@@ -131,6 +131,15 @@ Design changes are written down before they are built:
 Smaller implementation choices that need no change record go into
 [`design/decisions.md`](design/decisions.md).
 
+## Pull requests
+
+- One branch per change, named `<type>/<short-name>` after the Conventional Commit types (`feat/ftp-storage`).
+- Fill in [`.github/pull_request_template.md`](.github/pull_request_template.md): what, why (issue and
+  change record), how it was tested, which docs changed, and the end of the `scripts/check.sh` output.
+- Every pull request gets a review with inline comments. Answer each thread: agree and fix, disagree
+  with a reason, or ask. A thread is resolved when it is fixed or decided.
+- The maintainer merges.
+
 ## Commits
 
 - Conventional Commits (`feat:`, `fix:`, `test:`, `docs:`, `refactor:`, `chore:`, `build:`, `ci:`), a
@@ -139,4 +148,5 @@ Smaller implementation choices that need no change record go into
 - Never commit secrets, `.hone/`, model weights or large binaries.
 - `CHANGELOG.md` follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-Contributors using AI coding tools will find a short brief for them in [`AGENTS.md`](AGENTS.md).
+Contributors using AI coding tools will find a short brief for them in [`AGENTS.md`](AGENTS.md); Claude
+Code users also get the whole workflow as skills, reviewer agents and hooks in [`.claude/`](.claude/).

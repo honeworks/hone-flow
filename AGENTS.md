@@ -70,3 +70,12 @@ cache.
    `design/decisions.md`; update `design/current.md` when behaviour changes.
 10. **Git**: Conventional Commits, small commits; AI-written commits end with a `Co-Authored-By:` line.
     Do not push, tag or publish unless the maintainer asks.
+
+## Workflow and tooling
+
+One branch per task; a change record before a design change; tests first; the docs updated with the
+code (the table in [`.claude/skills/sync-docs/SKILL.md`](.claude/skills/sync-docs/SKILL.md));
+`scripts/check.sh` green; a pull request from
+[`.github/pull_request_template.md`](.github/pull_request_template.md). Claude Code users get this flow
+as skills, reviewer agents and hooks in [`.claude/`](.claude/); see [`CLAUDE.md`](CLAUDE.md). Other
+tools: the skills are plain Markdown and can be followed as they are.
