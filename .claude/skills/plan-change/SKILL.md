@@ -1,6 +1,6 @@
 ---
 name: plan-change
-description: Plan a design change as a change record in design/changes/ and get the maintainer's approval before writing code. Use after start-task when a change touches the public API, CLI, guarantees, run format, records, ports, extras or dependencies.
+description: Plan a design change as a change record in design/changes/ and get it approved before writing code. Use after start-task when a change touches the public API, CLI, guarantees, run format, records, ports, extras or dependencies.
 ---
 
 # Plan a design change
@@ -24,6 +24,9 @@ description: Plan a design change as a change record in design/changes/ and get 
    - what happens on a crash between two writes, and with two processes on one run;
    - is there a smaller option that meets the need? (CONTRIBUTING.md, "Keep it simple")
 5. Commit: `docs(design): propose NNNN <short name>`.
-6. **Stop and ask.** Give the maintainer the decision and the open questions in a few lines, with the
-   file path. On approval set the status to `accepted (approved by the maintainer YYYY-MM-DD)`, commit,
-   and continue with `implement-change`. On rejection set `rejected` with the reason and stop.
+6. **Stop and ask.** Give the user the decision and the open questions in a few lines, with the file
+   path. Only the project's maintainer accepts a record. If the user is the maintainer and approves, set
+   the status to `accepted (approved by the maintainer YYYY-MM-DD)`, commit, and continue with
+   `implement-change`. Otherwise the status stays `proposed`: open a pull request with the record alone
+   (`open-pr`) or link it from the issue, and wait for the maintainer there. On rejection set `rejected`
+   with the reason and stop.

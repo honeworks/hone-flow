@@ -8,8 +8,11 @@ argument-hint: "[pr-number]"
 
 1. **The PR.** `$ARGUMENTS`, or `gh pr view --json number,headRefOid,url`. The head sha is `headRefOid`.
    Earlier reviews end with `<!-- hone-review sha=<sha> -->`
-   (`gh api repos/{owner}/{repo}/pulls/<n>/reviews`). If one exists, review only `<that sha>..<head>`;
-   otherwise `origin/main...<head>`.
+   (`gh api repos/{owner}/{repo}/pulls/<n>/reviews`); take the newest marker.
+   - It equals the head: already reviewed, stop.
+   - It is an ancestor of the head (`git merge-base --is-ancestor <sha> <head>`) and
+     `git log --merges <sha>..<head>` is empty: review only `<sha>..<head>`.
+   - Otherwise (no marker, a rebase, or `main` merged into the branch): review `origin/main...<head>`.
 2. **Fresh reviewers.** Start these subagents in parallel. Give each only the PR number, the commit range
    and "review it"; never a summary of the work or your opinion of it:
    `pr-reviewer`, `test-auditor`, `simplicity-reviewer`. If the `pr-review-toolkit` plugin is installed,
@@ -34,8 +37,11 @@ argument-hint: "[pr-number]"
      findings with reasons inside `<details>`, and `<!-- hone-review sha=<head sha> -->` last.
 6. **Post**: `gh api repos/{owner}/{repo}/pulls/<n>/reviews --method POST --input <file>`.
    - With `HONEWORKS_REVIEWER_TOKEN` set (the reviewer account), prefix `GH_TOKEN="$HONEWORKS_REVIEWER_TOKEN"`.
+     It may send `REQUEST_CHANGES` or `COMMENT`, never `APPROVE`: approving is a person's decision, and a
+     bot approval could count toward branch protection. With nothing kept, send `COMMENT` and write
+     "Approve" as the verdict in the body.
    - Without it the review comes from the PR author, and GitHub allows only `COMMENT` on your own PR:
      send `"event": "COMMENT"` and keep the verdict in the body's first line.
    - A 422 for a line outside the diff: move that comment into the body and post again.
-7. Tell the maintainer: the review link, the verdict, one line per kept finding. The maintainer answers on
-   GitHub; `address-review` handles the answers.
+7. Tell the user: the review link, the verdict, one line per kept finding. The answers come on GitHub;
+   `address-review` handles them.

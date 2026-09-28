@@ -1,6 +1,6 @@
 ---
 name: add-example
-description: Add a runnable, explained example to examples/ that the tests execute. Use when a change adds a concept users should see, or the maintainer asks for an example.
+description: Add a runnable, explained example to examples/ that the tests execute. Use when a change adds a concept users should see, or the user asks for an example.
 ---
 
 # Add an example

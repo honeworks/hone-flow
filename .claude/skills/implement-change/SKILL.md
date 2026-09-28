@@ -18,5 +18,5 @@ description: Build an accepted change record or a small change test-first, then 
 4. Fast loop while working: `uv run pytest -x -q <paths>`, `uv run ruff check .`, `uv run pyright`.
 5. Commit each green step as a small Conventional Commit; the body says why.
 6. Run `sync-docs`, then `verify-before-done`.
-7. Report to the maintainer: what changed, which tests prove it, anything left open. Then wait for
+7. Report to the user: what changed, which tests prove it, anything left open. Then wait for
    "push" / "ship it" / "I'm happy", which starts `open-pr`.

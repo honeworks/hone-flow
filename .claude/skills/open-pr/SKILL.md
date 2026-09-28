@@ -1,6 +1,6 @@
 ---
 name: open-pr
-description: Push the task branch, open a pull request with a full description, then start the review. Use when the maintainer says the work is ready - "push", "ship it", "open a PR", "I'm happy with this".
+description: Push the task branch, open a pull request with a full description, then start the review. Use when the user says the work is ready - "push", "ship it", "open a PR", "I'm happy with this".
 ---
 
 # Open a pull request
@@ -13,4 +13,5 @@ description: Push the task branch, open a pull request with a full description, 
    subject of the main change, at most 72 characters.
 4. `gh pr create --base main --title "<title>" --body-file <file>`. If the branch already has a PR,
    update it: `gh pr edit --body-file <file>`.
-5. Run `review-pr` for the PR straight away. Don't wait to be asked.
+5. Run `review-pr` for the PR straight away. Don't wait to be asked: posting the review is part of the
+   PR flow the user started (AGENTS.md rule 10).

@@ -69,7 +69,9 @@ cache.
 9. **Design changes** get a record in `design/changes/` first; small choices go into
    `design/decisions.md`; update `design/current.md` when behaviour changes.
 10. **Git**: Conventional Commits, small commits; AI-written commits end with a `Co-Authored-By:` line.
-    Do not push, tag or publish unless the maintainer asks.
+    Push a branch and open a pull request only when the user asks ("push", "ship it"). Inside that pull
+    request's flow, reviewing it on GitHub and pushing fixes the user asked for need no new request.
+    Never push to `main`, tag or publish unless the maintainer asks.
 
 ## Workflow and tooling
 

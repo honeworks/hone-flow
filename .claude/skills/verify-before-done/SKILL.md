@@ -1,6 +1,6 @@
 ---
 name: verify-before-done
-description: Prove the work is done with command output before saying so - scripts/check.sh green, everything committed, docs synced. Use before telling the maintainer something is finished, fixed or passing, and before open-pr.
+description: Prove the work is done with command output before saying so - scripts/check.sh green, everything committed, docs synced. Use before telling the user something is finished, fixed or passing, and before open-pr.
 ---
 
 # Verify before saying "done"
