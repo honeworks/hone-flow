@@ -1,0 +1,113 @@
+[project]
+name = "hone-flow"
+dynamic = ["version"]
+description = "Run AI workflows of plain-function steps as self-contained run folders, with resume, fork, partial runs and human gates."
+readme = "README.md"
+requires-python = ">=3.11"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+authors = [{ name = "Bahman Shadmehr", email = "info@bshadmehr.me" }]
+keywords = [
+    "ai", "llm", "generative-ai", "workflow", "pipeline", "resume", "human-in-the-loop", "reproducibility",
+    "honeworks",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Typing :: Typed",
+]
+dependencies = [
+    "pydantic>=2.7",
+]
+
+[project.optional-dependencies]
+cli = ["typer>=0.12"]
+s3 = ["fsspec>=2025.2", "s3fs>=2025.2"]   # pipe_file(mode="create"): S3 conditional create
+metrics = ["psutil>=5.9"]
+gpu = ["nvidia-ml-py>=12.535"]
+
+[dependency-groups]
+dev = [
+    "pytest>=8", "pytest-cov>=5", "pytest-timeout>=2.3", "hypothesis>=6.100",
+    "ruff>=0.6", "pyright>=1.1.380", "httpx>=0.27", "moto[server]>=5",
+]
+
+[project.urls]
+Homepage = "https://github.com/honeworks/hone-flow"
+Repository = "https://github.com/honeworks/hone-flow"
+Issues = "https://github.com/honeworks/hone-flow/issues"
+Documentation = "https://github.com/honeworks/hone-flow/tree/main/docs"
+Changelog = "https://github.com/honeworks/hone-flow/blob/main/CHANGELOG.md"
+
+[project.scripts]
+hone-flow = "hone_flow.cli:main"
+
+[project.entry-points."hone.gpu_leases"]
+file_lock = "hone_flow.leases:FileLockGpuLease"
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[tool.hatch.version]
+path = "src/hone_flow/__init__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/hone_flow"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "src/", "tests/", "docs/", "examples/", "design/", "README.md", "CONTRIBUTING.md", "AGENTS.md", "LICENSE",
+    "CHANGELOG.md", "pyproject.toml",
+]
+
+[tool.ruff]
+line-length = 110
+target-version = "py311"
+src = ["src", "tests"]
+extend-exclude = ["design"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "RUF", "PT", "N", "S", "C4", "DTZ", "PL", "C90"]
+ignore = ["PLR0913", "PLR2004"]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
+[tool.ruff.lint.per-file-ignores]
+"src/hone_flow/errors.py" = ["N818"]   # exception names are public API (StepFailed)
+"src/hone_flow/testing/contracts.py" = ["S101"]   # contract checkers assert
+"src/hone_flow/cli.py" = ["PLR0917", "S603"]   # Typer commands take one parameter per option; $EDITOR is run by design
+"examples/**" = ["S101", "S603", "PT018", "PLW1510"]   # examples assert the facts they show and run subprocesses
+"tests/**" = ["S101", "S603", "PLR0915", "PLR0917", "N802", "PT018", "PLC0415", "PLW1510"]
+
+[tool.pyright]
+include = ["src", "tests", "examples"]
+strict = ["src"]
+pythonVersion = "3.11"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers -m 'not gpu and not ollama and not comfyui and not hosted'"
+timeout = 120
+markers = [
+    "e2e: acceptance-case tests (run by default)",
+    "gpu: needs the shared GPU; run via scripts/gpu-lock.sh",
+    "ollama: needs a running Ollama",
+    "comfyui: needs ComfyUI",
+    "hosted: needs a hosted API key",
+    "slow: slower than 5 s",
+]
+
+[tool.coverage.run]
+branch = true
+source = ["src/hone_flow"]
+
+[tool.coverage.report]
+exclude_also = ["if TYPE_CHECKING:", "raise NotImplementedError", "@overload", "\\.\\.\\."]
