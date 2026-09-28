@@ -138,6 +138,7 @@ Smaller implementation choices that need no change record go into
   change record), how it was tested, which docs changed, and the end of the `scripts/check.sh` output.
 - Every pull request gets a review with inline comments. Answer each thread: agree and fix, disagree
   with a reason, or ask. A thread is resolved when it is fixed or decided.
+- The code owners in [`.github/CODEOWNERS`](.github/CODEOWNERS) are asked to review automatically.
 - The maintainer merges.
 
 ## Commits
