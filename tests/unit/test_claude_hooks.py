@@ -38,16 +38,19 @@ def run_hook(
     )
 
 
+def make_repo(path: Path, branch: str = "main") -> Path:
+    """A git repository on ``branch`` with one commit and an ignored file."""
+    path.mkdir()
+    git(path, "init", "-q", "-b", branch)
+    (path / ".gitignore").write_text("local.json\n")
+    git(path, "add", ".")
+    git(path, "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-q", "-m", "init")
+    return path
+
+
 @pytest.fixture
 def repo(tmp_path: Path) -> Path:
-    """A git repository on main with one commit and an ignored file."""
-    repo = tmp_path / "repo"
-    repo.mkdir()
-    git(repo, "init", "-q", "-b", "main")
-    (repo / ".gitignore").write_text("local.json\n")
-    git(repo, "add", ".")
-    git(repo, "-c", "user.name=t", "-c", "user.email=t@t", "commit", "-q", "-m", "init")
-    return repo
+    return make_repo(tmp_path / "repo")
 
 
 # guard-main.sh
@@ -72,6 +75,21 @@ def test_guard_allows_the_override(repo: Path) -> None:
 def test_guard_allows_files_outside_the_repository(repo: Path, tmp_path: Path) -> None:
     outside = tmp_path / "memory" / "note.md"
     assert run_hook("guard-main.sh", repo, {"file_path": str(outside)}).returncode == 0
+
+
+def test_guard_allows_files_of_another_repository(repo: Path, tmp_path: Path) -> None:
+    other = make_repo(tmp_path / "other")  # also on main
+    assert run_hook("guard-main.sh", repo, {"file_path": str(other / "a.py")}).returncode == 0
+
+
+def test_guard_blocks_edits_on_master(tmp_path: Path) -> None:
+    repo = make_repo(tmp_path / "repo", branch="master")
+    assert run_hook("guard-main.sh", repo, {"file_path": str(repo / "a.py")}).returncode == 2
+
+
+def test_guard_allows_a_detached_head(repo: Path) -> None:
+    git(repo, "switch", "-q", "--detach")
+    assert run_hook("guard-main.sh", repo, {"file_path": str(repo / "a.py")}).returncode == 0
 
 
 def test_guard_allows_ignored_files(repo: Path) -> None:
