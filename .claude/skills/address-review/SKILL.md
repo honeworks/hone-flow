@@ -1,6 +1,6 @@
 ---
 name: address-review
-description: Act on the answers to review comments on a pull request - fix, reply, resolve threads, push, re-review. Use when the user says the review is answered or asks to handle the review comments.
+description: Act on the answers to review comments on a pull request - fix, reply, resolve threads, push. Use when the user says the review is answered or asks to handle the review comments.
 argument-hint: "[pr-number]"
 ---
 
@@ -30,5 +30,5 @@ argument-hint: "[pr-number]"
    `gh api graphql -f query='mutation { resolveReviewThread(input: {threadId: "<id>"}) { thread { isResolved } } }'`.
 5. If code changed: `sync-docs`, `verify-before-done`, commit (`fix: address review of #<n>`), and push:
    the user asked for the review to be addressed, which covers pushing to this PR's branch (AGENTS.md
-   rule 10). The push starts `review-pr` again, which reviews only the new commits.
+   rule 10). The push makes claude[bot] review the new commits.
 6. Summarize: fixed, answered, still open.

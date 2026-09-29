@@ -13,7 +13,7 @@ argument-hint: "<version>"
    SemVer; while on 0.x, a breaking change bumps the minor version.
 4. `CHANGELOG.md`: the unreleased section becomes `## [<version>] - <YYYY-MM-DD>`; add an empty
    unreleased section above it. Change records built in this release: `implemented in <version>`.
-5. `verify-before-done`, then `open-pr` (which runs `review-pr`). The maintainer merges.
+5. `verify-before-done`, then `open-pr` (claude[bot] reviews it). The maintainer merges.
 6. After the merge, on `main`: `git tag -a v<version> -m "hone-flow <version>"`. **Ask the maintainer
    before** `git push origin v<version>`: the tag runs `.github/workflows/release.yml`, which publishes
    to PyPI through trusted publishing (environment `pypi`). Watch it: `gh run watch`.

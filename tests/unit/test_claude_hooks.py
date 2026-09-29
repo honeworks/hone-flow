@@ -113,47 +113,38 @@ def test_format_fixes_the_file_and_tells_claude_to_reread_it(tmp_path: Path) -> 
 # after-push.sh (with a fake gh)
 
 FAKE_GH = """#!/usr/bin/env bash
-case "$1 $2" in
-  "pr view")
-    case "$FAKE_PR" in
-      none) echo 'no pull requests found for branch "feat/x"' >&2; exit 1 ;;
-      error) echo "error connecting to api.github.com" >&2; exit 1 ;;
-      *) echo "7 abc123" ;;
-    esac ;;
-  "api "*)
-    [ "$FAKE_REVIEWS" = error ] && exit 1
-    [ "$FAKE_REVIEWS" = marked ] && echo "<!-- hone-review sha=abc123 -->"
-    exit 0 ;;
-esac
+if [ "$1 $2" = "pr view" ]; then
+  case "$FAKE_PR" in
+    none) echo 'no pull requests found for branch "feat/x"' >&2; exit 1 ;;
+    error) echo "error connecting to api.github.com" >&2; exit 1 ;;
+    closed) exit 0 ;;
+    *) echo "OPEN" ;;
+  esac
+fi
 """
 
 
-def run_after_push(repo: Path, tmp_path: Path, pr: str, reviews: str = "") -> str:
+def run_after_push(repo: Path, tmp_path: Path, pr: str) -> str:
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir(exist_ok=True)
     (bin_dir / "gh").write_text(FAKE_GH)
     (bin_dir / "gh").chmod(0o755)
     git(repo, "switch", "-q", "-c", "feat/x")
     path = f"{bin_dir}{os.pathsep}{os.environ['PATH']}"
-    result = run_hook("after-push.sh", repo, {}, PATH=path, FAKE_PR=pr, FAKE_REVIEWS=reviews)
+    result = run_hook("after-push.sh", repo, {}, PATH=path, FAKE_PR=pr)
     assert result.returncode == 0
     return result.stdout
 
 
-def test_after_push_asks_for_a_pull_request(repo: Path, tmp_path: Path) -> None:
-    out = json.loads(run_after_push(repo, tmp_path, pr="none"))
+@pytest.mark.parametrize("pr", ["none", "closed"])
+def test_after_push_asks_for_a_pull_request(repo: Path, tmp_path: Path, pr: str) -> None:
+    out = json.loads(run_after_push(repo, tmp_path, pr=pr))
     assert "open-pr" in out["hookSpecificOutput"]["additionalContext"]
 
 
-def test_after_push_asks_for_a_review_of_a_new_head(repo: Path, tmp_path: Path) -> None:
-    out = json.loads(run_after_push(repo, tmp_path, pr="open"))
-    assert "review-pr" in out["hookSpecificOutput"]["additionalContext"]
+def test_after_push_is_silent_with_an_open_pull_request(repo: Path, tmp_path: Path) -> None:
+    assert run_after_push(repo, tmp_path, pr="open") == ""
 
 
-def test_after_push_is_silent_when_the_head_is_reviewed(repo: Path, tmp_path: Path) -> None:
-    assert run_after_push(repo, tmp_path, pr="open", reviews="marked") == ""
-
-
-@pytest.mark.parametrize(("pr", "reviews"), [("error", ""), ("open", "error")])
-def test_after_push_is_silent_when_github_fails(repo: Path, tmp_path: Path, pr: str, reviews: str) -> None:
-    assert run_after_push(repo, tmp_path, pr=pr, reviews=reviews) == ""
+def test_after_push_is_silent_when_github_fails(repo: Path, tmp_path: Path) -> None:
+    assert run_after_push(repo, tmp_path, pr="error") == ""

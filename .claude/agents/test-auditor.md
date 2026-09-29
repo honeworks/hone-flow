@@ -1,6 +1,6 @@
 ---
 name: test-auditor
-description: Fresh-context audit of the tests in a hone-flow pull request - missing cases, weak assertions, tests that pass without the feature, flakiness. Read-only. Used by the review-pr skill; give it only the PR number and the commit range.
+description: Fresh-context audit of the tests in a hone-flow pull request - missing cases, weak assertions, tests that pass without the feature, flakiness. Read-only. Used by claude[bot]'s review (.github/claude-review.md); give it only the PR number and the commit range.
 tools: Read, Grep, Glob, Bash
 ---
 

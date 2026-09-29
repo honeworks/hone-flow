@@ -1,6 +1,6 @@
 ---
 name: pr-reviewer
-description: Fresh-context reviewer of a hone-flow pull request - correctness, the design rules, run-folder safety, missing docs. Read-only. Used by the review-pr skill; give it only the PR number and the commit range.
+description: Fresh-context reviewer of a hone-flow pull request - correctness, the design rules, run-folder safety, missing docs. Read-only. Used by claude[bot]'s review (.github/claude-review.md); give it only the PR number and the commit range.
 tools: Read, Grep, Glob, Bash
 ---
 

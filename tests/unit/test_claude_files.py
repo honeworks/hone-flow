@@ -15,7 +15,7 @@ ROOT = Path(__file__).resolve().parents[2]
 CLAUDE = ROOT / ".claude"
 SKILLS = sorted(CLAUDE.glob("skills/*/SKILL.md"))
 AGENTS = sorted(CLAUDE.glob("agents/*.md"))
-PAGES = [ROOT / "CLAUDE.md", *SKILLS, *AGENTS]
+PAGES = [ROOT / "CLAUDE.md", ROOT / ".github" / "claude-review.md", *SKILLS, *AGENTS]
 
 # A backticked path we can check: starts at a known top-level folder or is a known top-level file.
 PATH_PREFIXES = ("src/", "tests/", "docs/", "design/", "examples/", "scripts/", ".claude/", ".github/")

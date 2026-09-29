@@ -1,6 +1,6 @@
 ---
 name: simplicity-reviewer
-description: Fresh-context review of a hone-flow pull request for needless complexity - speculative abstractions, forwarding layers, oversized functions and modules, vague names, avoidable dependencies. Read-only. Used by the review-pr skill; give it only the PR number and the commit range.
+description: Fresh-context review of a hone-flow pull request for needless complexity - speculative abstractions, forwarding layers, oversized functions and modules, vague names, avoidable dependencies. Read-only. Used by claude[bot]'s review (.github/claude-review.md); give it only the PR number and the commit range.
 tools: Read, Grep, Glob, Bash
 ---
 
