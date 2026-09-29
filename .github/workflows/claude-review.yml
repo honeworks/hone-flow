@@ -55,8 +55,10 @@ jobs:
           name: claude-review-pr${{ env.PR }}-attempt${{ github.run_attempt }}
           path: ${{ steps.claude.outputs.execution_file }}
           retention-days: 7
-      # A run that posted no review for the current head must not look green.
+      # A run that posted no review for the current head must not look green. Skipped when the action
+      # skipped itself (a pull request that changes this workflow), since Claude never ran then.
       - name: Check that the review was posted
+        if: ${{ steps.claude.outputs.execution_file != '' }}
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
