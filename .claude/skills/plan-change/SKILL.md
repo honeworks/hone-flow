@@ -27,6 +27,6 @@ description: Plan a design change as a change record in design/changes/ and get 
 6. **Stop and ask.** Give the user the decision and the open questions in a few lines, with the file
    path. Only the project's maintainer accepts a record. If the user is the maintainer and approves, set
    the status to `accepted (approved by the maintainer YYYY-MM-DD)`, commit, and continue with
-   `implement-change`. Otherwise the status stays `proposed`: open a pull request with the record alone
-   (`open-pr`) or link it from the issue, and wait for the maintainer there. On rejection set `rejected`
-   with the reason and stop.
+   `implement-change`. Otherwise the status stays `proposed`: offer to open a pull request with the record
+   alone, and open it (`open-pr`) only when the user says so (AGENTS.md rule 10); or link the record from
+   the issue. The maintainer decides there. On rejection set `rejected` with the reason and stop.
