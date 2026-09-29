@@ -8,6 +8,8 @@ import json
 import os
 import shutil
 import subprocess
+import uuid
+from collections.abc import Iterator
 from pathlib import Path
 
 import pytest
@@ -109,27 +111,55 @@ def test_guard_checks_notebooks(repo: Path) -> None:
 # format-python.sh (runs ruff from this repository's environment)
 
 
-def test_format_ignores_other_files(tmp_path: Path) -> None:
-    notes = tmp_path / "notes.md"
+@pytest.fixture
+def inside() -> Iterator[Path]:
+    """A scratch folder inside this repository: untracked, not ignored, removed afterwards."""
+    folder = ROOT / "tests" / "unit" / f"_hook_scratch_{uuid.uuid4().hex[:8]}"
+    folder.mkdir()
+    yield folder
+    shutil.rmtree(folder)
+
+
+def test_format_ignores_other_files(inside: Path) -> None:
+    notes = inside / "notes.md"
     notes.write_text("import  os\n")
     assert run_hook("format-python.sh", ROOT, {"file_path": str(notes)}).returncode == 0
     assert notes.read_text() == "import  os\n"
 
 
-def test_format_is_silent_for_a_clean_file(tmp_path: Path) -> None:
-    clean = tmp_path / "clean.py"
+def test_format_is_silent_for_a_clean_file(inside: Path) -> None:
+    clean = inside / "clean.py"
     clean.write_text("X = 1\n")
     result = run_hook("format-python.sh", ROOT, {"file_path": str(clean)})
     assert (result.returncode, result.stderr) == (0, "")
 
 
-def test_format_fixes_the_file_and_tells_claude_to_reread_it(tmp_path: Path) -> None:
-    messy = tmp_path / "messy.py"
+def test_format_fixes_the_file_and_tells_claude_to_reread_it(inside: Path) -> None:
+    messy = inside / "messy.py"
     messy.write_text("import hashlib\nX=1\n")
     result = run_hook("format-python.sh", ROOT, {"file_path": str(messy)})
     assert messy.read_text() == "X = 1\n"  # formatted, and the unused import is gone
     assert result.returncode == 2
     assert "Re-read the file" in result.stderr
+
+
+def test_format_leaves_files_outside_the_repository_alone(tmp_path: Path) -> None:
+    other = make_repo(tmp_path / "other") / "script.py"  # another repository, and a scratch folder
+    scratch = tmp_path / "scratch.py"
+    for path in (other, scratch):
+        path.write_text("import hashlib\nX=1\n")
+        result = run_hook("format-python.sh", ROOT, {"file_path": str(path)})
+        assert (result.returncode, path.read_text()) == (0, "import hashlib\nX=1\n")
+
+
+def test_format_leaves_ignored_files_alone() -> None:
+    ignored = ROOT / ".venv" / f"_hook_scratch_{uuid.uuid4().hex[:8]}.py"
+    ignored.write_text("import hashlib\nX=1\n")
+    try:
+        assert run_hook("format-python.sh", ROOT, {"file_path": str(ignored)}).returncode == 0
+        assert ignored.read_text() == "import hashlib\nX=1\n"
+    finally:
+        ignored.unlink()
 
 
 # after-push.sh (with a fake gh)

@@ -15,18 +15,10 @@ file="$(python3 -c 'import json, sys
 i = json.load(sys.stdin).get("tool_input", {})
 print(i.get("file_path") or i.get("notebook_path") or "")')"
 [ -n "$file" ] || exit 0
+. "$(dirname "$0")/in-repo.sh"
+in_this_repo "$file" || exit 0
 
-# The nearest folder that exists: Write may create new folders.
-dir="$(dirname "$file")"
-while [ ! -d "$dir" ]; do dir="$(dirname "$dir")"; done
-
-# Worktrees of one repository share its common git dir; anything else is another repository or none.
-common() { git -C "$1" rev-parse --path-format=absolute --git-common-dir 2>/dev/null; }
-here="$(common "$dir")" || exit 0
-[ "$here" = "$(common "${CLAUDE_PROJECT_DIR:-.}")" ] || exit 0
-git -C "$dir" check-ignore -q "$file" && exit 0
-
-branch="$(git -C "$dir" branch --show-current)"
+branch="$(git -C "$file_dir" branch --show-current)"
 if [ "$branch" = "main" ] || [ "$branch" = "master" ]; then
   echo "You are on '$branch'. Start the task on its own branch first (the start-task skill)." >&2
   exit 2
