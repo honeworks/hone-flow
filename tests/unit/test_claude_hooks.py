@@ -152,14 +152,12 @@ def test_format_leaves_files_outside_the_repository_alone(tmp_path: Path) -> Non
         assert (result.returncode, path.read_text()) == (0, "import hashlib\nX=1\n")
 
 
-def test_format_leaves_ignored_files_alone() -> None:
-    ignored = ROOT / ".venv" / f"_hook_scratch_{uuid.uuid4().hex[:8]}.py"
+def test_format_leaves_ignored_files_alone(repo: Path) -> None:
+    ignored = repo / "local.json.py"
+    (repo / ".gitignore").write_text("local.json\nlocal.json.py\n")
     ignored.write_text("import hashlib\nX=1\n")
-    try:
-        assert run_hook("format-python.sh", ROOT, {"file_path": str(ignored)}).returncode == 0
-        assert ignored.read_text() == "import hashlib\nX=1\n"
-    finally:
-        ignored.unlink()
+    result = run_hook("format-python.sh", repo, {"file_path": str(ignored)})
+    assert (result.returncode, ignored.read_text()) == (0, "import hashlib\nX=1\n")
 
 
 # after-push.sh (with a fake gh)
