@@ -29,7 +29,11 @@ def run_hook(
         input=json.dumps({"tool_input": tool_input}),
         capture_output=True,
         text=True,
-        env={**os.environ, "CLAUDE_PROJECT_DIR": str(project), **env},
+        env={
+            **{k: v for k, v in os.environ.items() if k != "HONE_ALLOW_MAIN"},
+            "CLAUDE_PROJECT_DIR": str(project),
+            **env,
+        },
         check=False,
     )
 
