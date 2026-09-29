@@ -1,0 +1,49 @@
+name: Claude review
+# claude[bot] reviews pull requests by following .github/claude-review.md with the reviewer agents in
+# .claude/agents/. It runs on every push to a pull request from this repository, and when someone with
+# write access comments "@claude review" on any pull request (the only way for forks, which get no
+# secrets on pull_request events). Needs the Claude GitHub App on the repository and the
+# CLAUDE_CODE_OAUTH_TOKEN secret (`claude setup-token`); it uses the maintainer's Claude subscription.
+on:
+  pull_request:
+    types: [opened, synchronize, ready_for_review, reopened]
+  issue_comment:
+    types: [created]
+permissions: {}
+concurrency:
+  group: claude-review-${{ github.event.pull_request.number || github.event.issue.number }}
+  cancel-in-progress: true
+jobs:
+  review:
+    if: >-
+      (github.event_name == 'pull_request'
+        && !github.event.pull_request.draft
+        && github.event.pull_request.head.repo.full_name == github.repository)
+      || (github.event_name == 'issue_comment'
+        && github.event.issue.pull_request
+        && startsWith(github.event.comment.body, '@claude review')
+        && contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association))
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      id-token: write
+    env:
+      PR: ${{ github.event.pull_request.number || github.event.issue.number }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # The pull request's own commits; the review compares them with origin/main and earlier reviews.
+          ref: ${{ github.event_name == 'issue_comment' && format('refs/pull/{0}/head', github.event.issue.number) || '' }}
+          fetch-depth: 0
+      - uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: |
+            REPO: ${{ github.repository }}
+            PR NUMBER: ${{ env.PR }}
+            TRIGGER: ${{ github.event_name }}
+
+            Review pull request ${{ env.PR }} by following .github/claude-review.md exactly.
+          claude_args: |
+            --allowedTools "Read,Grep,Glob,Write,Agent,Bash(git diff:*),Bash(git log:*),Bash(git show:*),Bash(git merge-base:*),Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh api:*)"
