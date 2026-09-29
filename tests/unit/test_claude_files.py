@@ -4,6 +4,7 @@ Skills and agents name files and design sections; when those move, the instructi
 anyone noticing. These tests fail instead.
 """
 
+import fnmatch
 import json
 import os
 import re
@@ -53,7 +54,8 @@ def named_paths(text: str) -> set[str]:
 
 
 def test_there_are_skills_and_agents() -> None:
-    assert SKILLS and AGENTS
+    assert SKILLS
+    assert AGENTS
 
 
 @pytest.mark.parametrize("path", SKILLS, ids=lambda p: p.parent.name)
@@ -67,7 +69,8 @@ def test_skill_frontmatter(path: Path) -> None:
 def test_agent_frontmatter(path: Path) -> None:
     meta = frontmatter(path)
     assert meta.get("name") == path.stem
-    assert meta.get("description") and meta.get("tools")
+    assert meta.get("description")
+    assert meta.get("tools")
     tools = {tool.strip() for tool in meta["tools"].split(",")}
     assert not tools & READ_ONLY_FORBIDDEN, f"{path.stem} is a reviewer and must stay read-only"
 
@@ -99,6 +102,33 @@ def test_named_skills_and_agents_exist(path: Path) -> None:
     known = {p.parent.name for p in SKILLS} | {p.stem for p in AGENTS} | OTHER_NAMES
     unknown = sorted(named_skills(path.read_text()) - known)
     assert not unknown, f"{path.relative_to(ROOT)} names skills or agents that don't exist: {unknown}"
+
+
+def test_settings_wire_the_hooks_and_deny_publishing() -> None:
+    settings = json.loads((CLAUDE / "settings.json").read_text())
+    hooks = {
+        (event, group["matcher"], hook.get("if", ""), hook["command"].rsplit("/", 1)[-1])
+        for event, groups in settings["hooks"].items()
+        for group in groups
+        for hook in group["hooks"]
+    }
+    assert ("PreToolUse", "Edit|Write|NotebookEdit", "", "guard-main.sh") in hooks
+    assert ("PostToolUse", "Edit|Write", "", "format-python.sh") in hooks
+    assert ("PostToolUse", "Bash", "Bash(git push*)", "after-push.sh") in hooks
+    assert ("PostToolUse", "Bash", "Bash(gh pr create*)", "after-push.sh") in hooks
+    # Deny rules win over allow rules; each way of publishing must match one.
+    deny = [rule.removeprefix("Bash(").removesuffix(")") for rule in settings["permissions"]["deny"]]
+    for command in (
+        "uv publish",
+        "twine upload dist/x.whl",
+        "uv run twine upload dist/x.whl",
+        "uv run --frozen twine upload dist/x.whl",
+        "uv run python -m twine upload dist/x.whl",
+        "uv run uv publish",
+        "uvx twine upload dist/x.whl",
+    ):
+        assert any(fnmatch.fnmatchcase(command, rule) for rule in deny), command
+    assert (CLAUDE / "hooks" / "in-repo.sh").is_file()
 
 
 def test_settings_hooks_exist_and_are_executable() -> None:
