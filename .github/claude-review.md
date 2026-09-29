@@ -13,8 +13,9 @@ every push to a pull request, and when someone with write access comments `@clau
    - Otherwise (no marker, a rebase, `main` merged into the branch, or an `@claude review` comment):
      review `origin/main...<head>`.
 2. **Fresh reviewers.** Start the subagents `pr-reviewer`, `test-auditor` and `simplicity-reviewer`
-   (`.claude/agents/`) in parallel. Give each only the pull request number, the commit range and
-   "review it"; never your own opinion of the change.
+   (`.claude/agents/`) in parallel, in the foreground. Give each only the pull request number, the
+   commit range and "review it"; never your own opinion of the change. Wait for all three results:
+   the run ends when your turn ends, so never end it before the review is posted (step 6).
 3. **Triage** every finding by reading the code at that line yourself:
    - keep: real, on a line this pull request changed, worth fixing;
    - drop: false positive, older than this pull request, a nitpick, or something ruff, pyright or the
