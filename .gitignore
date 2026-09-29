@@ -54,3 +54,6 @@ pinned_runs/
 *.swp
 .DS_Store
 Thumbs.db
+
+# Claude Code: machine-specific settings
+.claude/settings.local.json

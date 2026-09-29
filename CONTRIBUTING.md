@@ -131,6 +131,19 @@ Design changes are written down before they are built:
 Smaller implementation choices that need no change record go into
 [`design/decisions.md`](design/decisions.md).
 
+## Pull requests
+
+- One branch per change, named `<type>/<short-name>` after the Conventional Commit types (`feat/ftp-storage`).
+- Fill in [`.github/pull_request_template.md`](.github/pull_request_template.md): what, why (issue and
+  change record), how it was tested, which docs changed, and the end of the `scripts/check.sh` output.
+- claude[bot] reviews every pull request, with inline comments and suggested changes
+  ([`.github/workflows/claude-review.yml`](.github/workflows/claude-review.yml)); on a pull request from a
+  fork, the maintainer starts it with a `@claude review` comment. Answer each thread: agree and fix,
+  disagree with a reason, or ask. A thread is resolved when it is fixed or decided.
+- `main` accepts changes only through pull requests, with CI green and every review thread resolved.
+- The code owners in [`.github/CODEOWNERS`](.github/CODEOWNERS) are asked to review automatically.
+- The maintainer merges.
+
 ## Commits
 
 - Conventional Commits (`feat:`, `fix:`, `test:`, `docs:`, `refactor:`, `chore:`, `build:`, `ci:`), a
@@ -139,4 +152,5 @@ Smaller implementation choices that need no change record go into
 - Never commit secrets, `.hone/`, model weights or large binaries.
 - `CHANGELOG.md` follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-Contributors using AI coding tools will find a short brief for them in [`AGENTS.md`](AGENTS.md).
+Contributors using AI coding tools will find a short brief for them in [`AGENTS.md`](AGENTS.md); Claude
+Code users also get the whole workflow as skills, reviewer agents and hooks in [`.claude/`](.claude/).
