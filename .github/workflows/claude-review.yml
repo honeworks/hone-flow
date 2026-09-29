@@ -37,6 +37,7 @@ jobs:
           ref: ${{ github.event_name == 'issue_comment' && format('refs/pull/{0}/head', github.event.issue.number) || '' }}
           fetch-depth: 0
       - uses: anthropics/claude-code-action@v1
+        id: claude
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           prompt: |
@@ -46,4 +47,24 @@ jobs:
 
             Review pull request ${{ env.PR }} by following .github/claude-review.md exactly.
           claude_args: |
-            --allowedTools "Read,Grep,Glob,Write,Agent,Bash(git diff:*),Bash(git log:*),Bash(git show:*),Bash(git merge-base:*),Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh api:*)"
+            --allowedTools "Read,Grep,Glob,Write,Agent,Task,Bash(git diff:*),Bash(git log:*),Bash(git show:*),Bash(git merge-base:*),Bash(git rev-parse:*),Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh api:*)"
+      # Claude's own output is hidden in the log; keep it for a week to see what a review did.
+      - uses: actions/upload-artifact@v7
+        if: ${{ always() && steps.claude.outputs.execution_file != '' }}
+        with:
+          name: claude-review-pr${{ env.PR }}-attempt${{ github.run_attempt }}
+          path: ${{ steps.claude.outputs.execution_file }}
+          retention-days: 7
+      # A run that posted no review for the current head must not look green. Skipped when the action
+      # skipped itself (a pull request that changes this workflow), since Claude never ran then.
+      - name: Check that the review was posted
+        if: ${{ steps.claude.outputs.execution_file != '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          head="$(gh pr view "$PR" --repo "$GITHUB_REPOSITORY" --json headRefOid -q .headRefOid)"
+          if ! gh api "repos/$GITHUB_REPOSITORY/pulls/$PR/reviews" --paginate -q '.[].body' \
+              | grep -qF "hone-review sha=$head"; then
+            echo "::error::claude[bot] posted no review for $head. Its transcript is in this run's artifacts."
+            exit 1
+          fi
